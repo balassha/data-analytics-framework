@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"hellofresh/utils"
 	"os"
-	"sync"
-	"time"
 
 	"hellofresh/elastic"
 )
 
-var wg sync.WaitGroup
+//var wg sync.WaitGroup
 
 type order struct {
 	Postcode string `json:"postcode"`
@@ -62,11 +60,11 @@ func ProcessInputJson(fileName string, sleepTime int) error {
 		dataArr = append(dataArr, dat)
 		// Bulk request with 500000 entries
 		if i%500000 == 0 {
-			wg.Add(1)
+			//wg.Add(1)
 			// Making bulk query to wait for 2s to avoid hitting Cordination execution from ES
 			// This can be solved by scaling up ES
-			time.Sleep(time.Duration(sleepTime) * time.Second)
-			go ProcessWorker(wrapperArr, dataArr)
+			//time.Sleep(time.Duration(sleepTime) * time.Second)
+			ProcessWorker(wrapperArr, dataArr)
 			wrapperArr = make([]elastic.IndexWrapper, 0)
 			dataArr = make([]elastic.Data, 0)
 			//break
@@ -74,13 +72,13 @@ func ProcessInputJson(fileName string, sleepTime int) error {
 		i++
 	}
 	d.Token()
-	wg.Wait()
+	//wg.Wait()
 
 	return nil
 }
 
 func ProcessWorker(indices []elastic.IndexWrapper, data []elastic.Data) {
-	defer wg.Done()
+	//defer wg.Done()
 	if err := elastic.BulkUpdate(indices, data); err != nil {
 		fmt.Fprintf(os.Stderr, "Error while Bulk Update : %v", err)
 	}
