@@ -1,0 +1,170 @@
+Install and Setup Instructions:
+-------------------------------
+The application is written as a docker app with two services. 
+1. CLI application - deliveryIndex. It has a Docker file in the same folder as the code. The docker image needs to be built first with the following command
+	> sudo docker build -t deliveryinfo .
+	This will build and place the image in docker image store with the name 'deliveryinfo'.
+2. Elastic Search - I am using the docker image of elastic search v7.13 from docker hub. This image needs to pulled with the following command
+	> docker pull docker.elastic.co/elasticsearch/elasticsearch:7.13.0
+   Then the docker container needs to be started. The command is as follows.
+	> sudo docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.13.0
+
+Post steps 1 & 2, the application should be up and running and ready for use.
+The first stage is processing the json file that contains delivery information and flush the data to elasticsearch.
+This can be done using the following command
+    > sudo docker run -v <Path of Input Json file>:/home deliveryinfo -process -f /home/<Json file name>
+	 (e.g.: sudo docker run --rm --network=host -v /home/ptm/Desktop:/home deliveryinfo -process -f /home/test.json)
+	 The application requires the json file and path of the json file to process and flush the data to elasticsearch.
+	 This takes around 75 seconds. This time can be improved by using a clustered version of Elastic search. Due to time constrains,
+	 I stopped with single node. Second reason is that the data set has 10m documents, which a single node can very easily handle
+
+Post processing the Json, the application will be ready for getting the required data.
+
+To get more information about the usage, -h or --help can be used as the command
+Input command : sudo docker run --rm --network=host -v /home/ptm/Desktop:/home deliveryinfo -h
+
+Output:
+Usage of ./app:
+  -e string
+    	End time of delivery to search (default "3PM")
+  -f string
+    	JSON file path (default "hf_test_calculation_fixtures.json")
+  -i string
+    	List of ingredients to search for Recipes. e.g.Potato,Veggie,Mushroom (default "Potato,Veggie,Chops")
+  -p string
+    	Postcode to find deliveries (default "10120")
+  -process
+    	Process the input json file and flush to Elasticsearch
+  -s string
+    	Start time of delivery to search (default "10AM")
+  -t int
+    	Time to Sleep between Bulk Requests (default 2)
+
+A few sample command and output matching the task description is given down below.
+
+Input command : sudo docker run --rm --network=host -v /home/ptm/Desktop:/home deliveryinfo -p "10120" -s "10AM" -e "3PM" -i "Veggie,Mushroom,Chops"
+
+Output:
+{
+  "unique_recipe_count": 10,
+  "count_per_recipe": [
+    {
+      "recipe": "Cajun-Spiced Pulled Pork",
+      "count": 667365
+    },
+    {
+      "recipe": "Hot Honey Barbecue Chicken Legs",
+      "count": 334409
+    },
+    {
+      "recipe": "Cherry Balsamic Pork Chops",
+      "count": 333889
+    },
+    {
+      "recipe": "Tex-Mex Tilapia",
+      "count": 333749
+    },
+    {
+      "recipe": "Honey Sesame Chicken",
+      "count": 333748
+    },
+    {
+      "recipe": "Grilled Cheese and Veggie Jumble",
+      "count": 333742
+    },
+    {
+      "recipe": "Garlic Herb Butter Steak",
+      "count": 333649
+    },
+    {
+      "recipe": "Speedy Steak Fajitas",
+      "count": 333578
+    },
+    {
+      "recipe": "Meatloaf à La Mom",
+      "count": 333570
+    },
+    {
+      "recipe": "Spinach Artichoke Pasta Bake",
+      "count": 333545
+    }
+  ],
+  "busiest_postcode": {
+    "postcode": "10176",
+    "delivery_count": 91785
+  },
+  "count_per_postcode_and_time": {
+    "postcode": "10120",
+    "from": "10AM",
+    "to": "3PM",
+    "delivery_count": 10000
+  },
+  "match_by_name": [
+    "Cherry Balsamic Pork Chops",
+    "Grilled Cheese and Veggie Jumble",
+    "Mediterranean Baked Veggies"
+  ]
+}
+
+Input command : sudo docker run --rm --network=host -v /home/ptm/Desktop:/home deliveryinfo -p "10120" -s "7AM" -e "10PM" -i "Veggie"
+
+Output:
+{
+  "unique_recipe_count": 10,
+  "count_per_recipe": [
+    {
+      "recipe": "Cajun-Spiced Pulled Pork",
+      "count": 667365
+    },
+    {
+      "recipe": "Hot Honey Barbecue Chicken Legs",
+      "count": 334409
+    },
+    {
+      "recipe": "Cherry Balsamic Pork Chops",
+      "count": 333889
+    },
+    {
+      "recipe": "Tex-Mex Tilapia",
+      "count": 333749
+    },
+    {
+      "recipe": "Honey Sesame Chicken",
+      "count": 333748
+    },
+    {
+      "recipe": "Grilled Cheese and Veggie Jumble",
+      "count": 333742
+    },
+    {
+      "recipe": "Garlic Herb Butter Steak",
+      "count": 333649
+    },
+    {
+      "recipe": "Speedy Steak Fajitas",
+      "count": 333578
+    },
+    {
+      "recipe": "Meatloaf à La Mom",
+      "count": 333570
+    },
+    {
+      "recipe": "Spinach Artichoke Pasta Bake",
+      "count": 333545
+    }
+  ],
+  "busiest_postcode": {
+    "postcode": "10176",
+    "delivery_count": 91785
+  },
+  "count_per_postcode_and_time": {
+    "postcode": "10120",
+    "from": "7AM",
+    "to": "10PM",
+    "delivery_count": 6734
+  },
+  "match_by_name": [
+    "Grilled Cheese and Veggie Jumble",
+    "Mediterranean Baked Veggies"
+  ]
+}

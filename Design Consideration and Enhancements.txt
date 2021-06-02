@@ -1,0 +1,19 @@
+Design Considerations and Enhancements:
+------------------------------------
+
+The primary focus of this application was on the efficieny of queries that will be run on the dataset available.
+That was the sole reason to choose elasticsearch as the persistance layer.
+The time it takes to response for all the queries is less that 1 second and there are 10m documents in a single ES instance.
+This application can be easily scaled if the dataset increases.
+With this design, we have a robust analytics framework which can search and get the data as we wish.
+
+
+Enhancements:
+1. Concurrency while flusing Data to ES.
+	I had tested the app with concurrent flushing of Bulk request to Elasticsearch but Elasticsearch starting giving errors
+	while handling bulk requests each with 500k documents.
+	This can be easily solved by deploying a cluster version of Elasticsearch.
+	The current app takes average of 3-4 seconds to process 10m documents but with concurrency this can be reduced by 600 - 700 percent.
+
+2. Scale Elastic search to a 3 node cluster 
+3. Improve test coverage
