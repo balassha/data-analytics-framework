@@ -39,7 +39,6 @@ func ProcessInputJson(fileName string, sleepTime int) error {
 	for d.More() {
 		elm := &order{}
 		d.Decode(elm)
-		//fmt.Printf("%v \n", elm)
 		start, end, err := utils.GetStartAndEnd(elm.Delivery)
 		if err != nil {
 			return fmt.Errorf("rrror occured while getting start and end time: %v", err)
