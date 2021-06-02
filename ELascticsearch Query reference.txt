@@ -1,0 +1,115 @@
+Elasticsearch Queries:
+----------------------
+
+Create Index:
+PUT <host>:9200/orders1
+
+
+
+Create Mapping:
+PUT <host>:9200/orders1/_mapping
+
+
+
+Flush Bulk Data:
+POST <host>:9200/orders1/_bulk
+Body (ndjson)
+{ "index" : {} }
+{ "postcode": "10196",   "recipe": "Hearty Pork Chili",   "delivery": "Saturday 6AM - 7PM", "start": 1, "end": 19 }
+{ "index" : {} }
+{ "postcode": "10120", "recipe": "Spanish One-Pan Chicken", "delivery": "Sunday 10PM - 2AM" , "start": 7, "end": 17 }
+{ "index" : {} }
+{   "postcode": "10196",   "recipe": "Hearty Pork Chili",   "delivery": "Saturday 6AM - 7PM" , "start": 7, "end": 21 }
+{ "index" : {} }
+{   "postcode": "10122",   "recipe": "Stovetop Mac 'N' Cheese",   "delivery": "Monday 6PM - 7AM" , "start": 1, "end": 20 }
+{ "index" : {} }
+{   "postcode": "10120",   "recipe": "Spanish One-Pan Chicken",   "delivery": "Saturday 10AM - 2PM" , "start": 7, "end": 17 }
+{ "index" : {} }
+{   "postcode": "10192",   "recipe": "Stovetop Mac 'N' Cheese",   "delivery": "Tuesday 6PM - 7AM" , "start": 8, "end": 19 }
+{ "index" : {} }
+{  "postcode": "10120",   "recipe": "Hearty Pork Chili",   "delivery": "Saturday 9AM - 2PM" , "start": 4, "end": 19 }
+{ "index" : {"_index":"orders"} }
+{  "postcode": "10120",   "recipe": "Hearty Pork Chili",   "delivery": "Saturday 4AM - 2PM" , "start": 6, "end": 19 }
+{ "index" : {} }
+{  "postcode": "10120",   "recipe": "Hearty Pork Chili",   "delivery": "Saturday 10AM - 5PM" , "start": 1, "end": 16 }
+
+
+
+Get Unique Recipes with count (Requirement 1 & 2):
+GET <host>:9200/orders1/_search?pretty=true
+Query -
+{
+    "aggs": {
+        "recipes": {
+            "terms": {
+                "field": "recipe"
+            }
+        }
+    }
+}
+
+
+
+Get most delivered Postcode (Requirement 3):
+GET <host>:9200/orders1/_search?pretty=true
+Query - 
+{
+    "aggs": {
+        "recipes": {
+            "terms": {
+                "field": "postcode",
+                "size":"1"
+            }
+        }
+    }
+}
+
+
+Get Deliveries to postcode within time range (Requirement 4):
+GET <host>:9200/orders1/_search?pretty=true
+Query - 
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "match": {
+                        "postcode": "10196"
+                    }
+                },
+                {
+                    "range": {
+                        "start": {
+                            "gte": 8
+                        }
+                    }
+                },
+                {
+                    "range": {
+                        "end": {
+                            "lte": 14
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+
+
+Get Recipe's with ingredients (Requirement 5):
+GET <host>:9200/orders1/_search?pretty=true
+Query - 
+{
+    "query": {
+        "query_string": {
+            "query": "(*Veggie*) OR (*Chops*) OR (*Mushroom*)",
+            "default_field": "recipe"
+        }
+    },
+    "collapse": {
+        "field": "recipe"
+    }
+}
+
