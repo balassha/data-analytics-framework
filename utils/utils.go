@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func GetStartAndEnd(delivery string) (int, int, error) {
+func ParseStartAndEndTime(delivery string) (int, int, error) {
 	items := strings.Split(delivery, " ")
 	start, err := strconv.Atoi(string([]rune(items[1])[0]))
 	if err != nil {

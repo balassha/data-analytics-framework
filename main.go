@@ -22,8 +22,10 @@ type Store interface {
 
 func main() {
 
+	// Initialize Persistance layer
 	var store Store = new(models.PersistanceType)
 
+	// CLI Arguements
 	var (
 		fileName    string
 		postCode    string
@@ -43,7 +45,7 @@ func main() {
 	flag.IntVar(&sleepTime, "t", 2, "Time to Sleep between Bulk Requests")
 	flag.Parse()
 
-	//Vaidate Input
+	// CLI Input Validation
 	if !utils.IsNumeric(postCode) {
 		fmt.Fprintf(os.Stderr, "Error : Invalid Postcode.")
 		return
@@ -59,14 +61,14 @@ func main() {
 		return
 	}
 
-	//Initialize ES client
+	// Initialize Store client
 	store.InitClient()
 	indexExists, err := store.IndexExists()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error occured while checking if the Index exists : %v", err)
 	}
 
-	//Process the Json file
+	// Process the Json file if CLI flag process is set
 	if process {
 		if !utils.FileExists(fileName) {
 			fmt.Fprintf(os.Stderr, "File doesn't exist : %s", fileName)
@@ -82,7 +84,7 @@ func main() {
 			}
 		}
 
-		//Process input JSON file and flush to Persistence layer
+		// Process input JSON file and flush to Persistence layer
 		err = processor.ProcessInputJson(fileName, sleepTime)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "JSON file Processing failed : %v", err)
@@ -125,7 +127,7 @@ func main() {
 	}
 	response.BusiestPostcode = value
 
-	startingTime, endingTime, _ := utils.GetStartAndEnd("Weekday " + startTime + " - " + endTime)
+	startingTime, endingTime, _ := utils.ParseStartAndEndTime("Weekday " + startTime + " - " + endTime)
 	var deliveryCount elastic.CountPerPostcodeAndTime
 	deliveryCount.Postcode = postCode
 	deliveryCount.From = startTime

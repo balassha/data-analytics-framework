@@ -1,5 +1,5 @@
-Elasticsearch Queries:
-----------------------
+Elasticsearch Queries and API Reference:
+---------------------------------------
 
 Create Index:
 PUT <host>:9200/orders1
